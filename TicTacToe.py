@@ -1,3 +1,7 @@
+import numpy as np
+import random
+
+
 class TicTacToe:
     """The game"""
     x = 1
@@ -20,17 +24,17 @@ class TicTacToe:
     def get_board(self, x, y):
         return self.board[x + (self.size*y)]
 
-    def set_board(self, x: int, y: int, player: "String 'X' or '0'") -> None:
+    def set_board(self, x: int, y: int, player: int) -> None:
         self.board[x + (self.size*y)] = player
 
-    def place(self, location: tuple, player: "String 'X' or '0'") -> "Winner 'X' or 'O'":
+    def place(self, location: tuple, player: int) -> int:
         if not self.is_empty(location):
             return -1
         x, y = location
         self.set_board(x, y, player)
         return self.game_over(location, player)
 
-    def is_empty(self, location):
+    def is_empty(self, location: tuple):
         """
         returns:
          0: already there
@@ -41,7 +45,7 @@ class TicTacToe:
             return 0
         return 1
 
-    def game_over(self, location, player):
+    def game_over(self, location: tuple, player: int):
         x, y = location
 
         for i in range(self.size):
@@ -75,19 +79,21 @@ class TicTacToe:
 
         return 0
 
-import numpy as np
-import random
 
 class Player:
-    def __init__(self, game: TicTacToe, player):
+    def __init__(self, game: TicTacToe, player: int):
         self.g = game
         self.p = player
         self.r = random.seed()
-        self.w = np.random.random((len(game.board),len(game.board)))
+        self.w = np.random.random((len(game.board), len(game.board)))
 
-    def calculateNextMove(self):
+    def calculate_next_move(self):
         b = np.array(self.g.board)
+        if self.p < 0:
+            b = np.negative(b)
         o = b.dot(self.w)
+
+        print(self.p, b)
 
         while True:
             move = o.argmax()
@@ -99,13 +105,13 @@ class Player:
 
 game_over = 0
 t = TicTacToe(3)
-t.place((0,1), t.x)
+t.place((0, 1), t.x)
 players = Player(t, t.o), Player(t, t.x)
 
 while game_over is 0:
     for p in players:
-        next_move = p.calculateNextMove()
-        print(p, next_move)
+        next_move = p.calculate_next_move()
+        print(next_move)
         game_over = t.place(next_move, p.p)
         print(t)
         if game_over is not 0:
