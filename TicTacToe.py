@@ -82,42 +82,64 @@ class TicTacToe:
 
 class Player:
     def __init__(self, game: TicTacToe, player: int):
-        self.g = game
-        self.p = player
-        self.r = random.seed()
-        self.w = np.random.random((len(game.board), len(game.board)))
+        self.game = game
+        self.player = player
+        self.weights = np.random.random((len(game.board) * 2, len(game.board)))
+        self.weights_old = np.subtract(self.weights, np.multiply(self.weights, 0.1))
 
     def calculate_next_move(self):
-        b = np.array(self.g.board)
-        if self.p < 0:
-            b = np.negative(b)
-        o = b.dot(self.w)
-
-        print(self.p, b)
+        b = np.array(self.game.board)
+        if self.player < 0:
+            b = np.concatenate((np.negative(b), b), axis=0)
+        else:
+            b = np.concatenate((b, np.negative(b)), axis=0)
+        o = b.dot(self.weights)
 
         while True:
             move = o.argmax()
-            if self.g.board[move] is 0:
+            if self.game.board[move] is 0:
                 break
             o[move] = o.min() - 1
 
-        return move % self.g.size, int(move / self.g.size)
+        return move % self.game.size, int(move / self.game.size)
 
+
+random.seed()
 game_over = 0
 t = TicTacToe(3)
-t.place((0, 1), t.x)
+t.place((random.randint(0, 2), random.randint(0, 2)), t.x)
 players = Player(t, t.o), Player(t, t.x)
+xwins = 0
+owins = 0
 
-while game_over is 0:
+for i in range(1000):
+    while game_over is 0:
+        for p in players:
+            next_move = p.calculate_next_move()
+            game_over = t.place(next_move, p.player)
+            if game_over is not 0:
+                break
+
+    #p = players[0]
     for p in players:
-        next_move = p.calculate_next_move()
-        print(next_move)
-        game_over = t.place(next_move, p.p)
-        print(t)
-        if game_over is not 0:
-            break
+        if game_over is p.player:
+            p.weights += np.subtract(p.weights, p.weights_old)
+        if game_over is -p.player:
+            p.weights -= np.subtract(p.weights, p.weights_old)
+        p.weights += np.multiply(np.subtract(np.random.random((len(p.game.board) * 2, len(p.game.board))), 0.5), 0.001)
+        p.weights_old = p.weights
+        #print(p.player, p.weights)
 
-print(game_over)
+    #if game_over is not None:
+    #    print(t, i, game_over)
+    if game_over is t.x:
+        xwins += 1
+    if game_over is t.o:
+        owins += 1
+    game_over = 0
+    t.board = [0 for i in range(t.size*t.size)]
+
+print(xwins, owins)
 
 
 
